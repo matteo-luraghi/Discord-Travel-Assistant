@@ -2,9 +2,9 @@ import requests
 import datetime
 import os
 
-TOKEN = os.getenv['TOKEN']
-TRAINS_DATABASE = os.getenv['TRAINS_DATABASE']
-ACCOMODATIONS_DATABASE = os.getenv['ACCOMODATIONS_DATABASE']
+TOKEN = os.environ['TOKEN']
+TRAINS_DATABASE = os.environ['TRAINS_DATABASE']
+ACCOMODATIONS_DATABASE = os.environ['ACCOMODATIONS_DATABASE']
 
 class Train:
     def __init__(self, name, start, end):
