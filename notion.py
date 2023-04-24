@@ -1,7 +1,5 @@
 import requests
 import datetime
-import cal
-import json
 import os
 
 TOKEN = os.getenv['TOKEN']
