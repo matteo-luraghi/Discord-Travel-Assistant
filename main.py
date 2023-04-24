@@ -124,12 +124,12 @@ async def on_message(message):
             await sendSchedule(date, 'date', message.channel)
 
 if __name__ == "__main__":
-    TOKEN = os.environ['TOKEN']
+    DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
     schedule.every().day.at("02:00").do(restart)
     Thread(target=schedule_checker).start() 
     try:
         keep_alive()
-        client.run(TOKEN)
+        client.run(DISCORD_TOKEN)
     except discord.errors.HTTPException:
         print("\n\n\nBLOCKED BY RATE LIMITS\n")
         restart()

@@ -2,7 +2,7 @@ import requests
 import datetime
 import os
 
-TOKEN = os.environ['TOKEN']
+NOTION_TOKEN = os.environ['NOTION_TOKEN']
 TRAINS_DATABASE = os.environ['TRAINS_DATABASE']
 ACCOMODATIONS_DATABASE = os.environ['ACCOMODATIONS_DATABASE']
 
@@ -44,7 +44,7 @@ def getEventsDate(date, method):
         DATABASE = TRAINS_DATABASE
     if method == 'accomodations':
         DATABASE = ACCOMODATIONS_DATABASE
-    data = notionRequest(TOKEN, DATABASE)
+    data = notionRequest(NOTION_TOKEN, DATABASE)
     results = {}
     for el in data['results']:
         start = el['properties']['Date']['date']['start']
