@@ -31,13 +31,16 @@ async def sendSchedule(date, spec, channel):
     trains = notion.getEventsDate(date, 'trains')
     accomodations = notion.getEventsDate(date, 'accomodations')
 
+    if trains == {} and accomodations == {} and spec=='tomorrow':
+        return
+
     trainsSorted = []
 
     if trains == {}:
         if spec != 'date':
             await channel.send(f"You have no trains to take for {spec}!")
         else:
-            await channel.send(f"You have no trains to take for the day {date.date()}!")
+            await channel.send(f"You have no trains to take on the day {date.date()}!")
     else:
         hours = []
         for train in trains:
@@ -81,9 +84,9 @@ async def sendSchedule(date, spec, channel):
             elif 'check-out' in accomodations[accomodation] and accomodations[accomodation]['check-out']!='Nothing':
                     checkOut = accomodations[accomodation]['check-out']
                     if spec != 'date':
-                        await channel.send(f"Remember to check out {spec} from {name}, the check-out times are: {checkOut}")
+                        await channel.send(f"Remember to check out {spec} from {name}, you can check out until: {checkOut}")
                     else:
-                        await channel.send(f"Remember to check out on the day {date.date()} from {name}, the check-out times are: {checkOut}")
+                        await channel.send(f"Remember to check out on the day {date.date()} from {name}, you can check out until: {checkOut}")
 
 
 #sends the reminder of the activities of the next day
@@ -105,11 +108,10 @@ async def on_ready():
 @client.event
 async def on_message(message):
     if ".today" in message.content:
-        await message.channel.send("Here's today's planning")
         today = datetime.datetime.now()
         await sendSchedule(today, 'today', message.channel)
 
-    if ".date" in message.content:
+    if ".sched" in message.content:
         date = message.content.split(' ')[1]
         try:
             date = datetime.datetime.strptime(date, '%Y/%m/%d')
