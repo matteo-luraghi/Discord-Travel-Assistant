@@ -1,7 +1,5 @@
 import discord
 from discord.ext import tasks
-import schedule
-import time
 import os
 import random
 import json
@@ -14,12 +12,6 @@ intents=discord.Intents.default()
 intents.message_content = True
 intents.members = True
 client = discord.Client(intents=intents)
-
-#checks if any of the scheduled functions is to be run
-def schedule_checker():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
 
 #restarts the system
 def restart():
@@ -137,8 +129,6 @@ async def postcardDecider():
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
-    #schedules the message of the daily schedule
-    sendReminder.start()
 
 #here are all the bot's command and features
 @client.event
