@@ -3,9 +3,10 @@ from discord.ext import tasks
 import schedule
 import time
 import os
+import random
+import json
 import datetime
 import notion
-from threading import Thread
 from keep_alive import keep_alive
 
 #bot initialization
@@ -88,6 +89,22 @@ async def sendSchedule(date, spec, channel):
                     else:
                         await channel.send(f"Remember to check out on the day {date.date()} from {name}, you can check out until: {checkOut}")
 
+#tells the randomly selected user to get a postcard from the selected city
+async def userPostcard(member: discord.Member, city:str):
+    channel = await member.create_dm()
+    randPhrase = random.randint(0, 5)
+    if randPhrase == 0:
+        await channel.send(f"You better get a postcard from {city}, you wouldn't want to get lost in the crowd, would you?")
+    elif randPhrase == 1:
+        await channel.send(f"Hi there, you'll get a postcard from {city}, be senaky about it, cheerio! :  )")
+    elif randPhrase == 2:
+        await channel.send(f"{city}... what a beautiful city, so many doors to get lost in... get a postcard, you know, just in case...")
+    elif randPhrase == 3:
+        await channel.send(f"Howdy! How are we doing? It's still a long way to London I'm afraid, why don't you get a postcard from {city}? I'm sure Simon will love it!")
+    elif randPhrase == 4:
+        await channel.send(f"Ahahahah... so you think you can leave {city} without a postcard??? You'll better get one, just saying... :  )")
+    elif randPhrase == 5:
+        await channel.send(f"You know, I'm redecorating the walls of my corridors, do you think that a postcard of {city} will fit?")
 
 #sends the reminder of the activities of the next day
 @tasks.loop(time=datetime.time(hour=21, minute=0, second=0, microsecond=0, tzinfo=datetime.datetime.now().astimezone().tzinfo))
@@ -96,7 +113,26 @@ async def sendReminder():
     channel = client.get_channel(CHAT_ID)
     tomorrow = (datetime.datetime.now() + datetime.timedelta(1))
     await sendSchedule(tomorrow, 'tomorrow', channel)
-    
+
+#each day checks if the city is new and decides if and who has to get the postcard
+@tasks.loop(time=datetime.time(hour=6, minute=0, second=0, microsecond=0, tzinfo=datetime.datetime.now().astimezone().tzinfo))
+async def postcardDecider():
+    members = client.guilds[0].members
+    members_real = []
+    for member in members:
+        if member.bot == False:
+            members_real.append(member)
+    with open("visited.json", "r") as file:
+        cities = json.load(file)
+    today = str(datetime.datetime.now()).split(' ')[0]
+    for city in cities:
+        if cities[city]['arrive'] == today and cities[city]['visited'] == 'N':
+            randNum = random.randint(0, len(members_real)-1)
+            await userPostcard(members_real[randNum], city)
+            cities[city]['visited'] = 'Y'
+    with open("visited.json", "w") as file:
+        json.dump(cities, file)
+
 #bot wakeup
 @client.event
 async def on_ready():
@@ -127,8 +163,6 @@ async def on_message(message):
 
 if __name__ == "__main__":
     DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
-    schedule.every().day.at("02:00").do(restart)
-    Thread(target=schedule_checker).start() 
     try:
         keep_alive()
         client.run(DISCORD_TOKEN)
