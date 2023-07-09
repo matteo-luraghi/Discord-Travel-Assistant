@@ -2,7 +2,6 @@ import discord
 from discord.ext import tasks
 import os
 import random
-import json
 import datetime
 import notion
 from keep_alive import keep_alive
@@ -99,31 +98,18 @@ async def userPostcard(member: discord.Member, city:str):
         await channel.send(f"You know, I'm redecorating the walls of my corridors, do you think that a postcard of {city} will fit?")
 
 #sends the reminder of the activities of the next day
-@tasks.loop(time=datetime.time(hour=21, minute=0, second=0, microsecond=0, tzinfo=datetime.datetime.now().astimezone().tzinfo))
+@tasks.loop(time=datetime.time(
+    hour=21, 
+    minute=0, 
+    second=0, 
+    microsecond=0, 
+    tzinfo=datetime.datetime.now().astimezone().tzinfo))
 async def sendReminder():
     CHAT_ID = int(os.environ['CHAT_ID'])
     channel = client.get_channel(CHAT_ID)
+    await channel.send("Schedule schedule working fine, delete this test")
     tomorrow = (datetime.datetime.now() + datetime.timedelta(1))
     await sendSchedule(tomorrow, 'tomorrow', channel)
-
-#each day checks if the city is new and decides if and who has to get the postcard
-@tasks.loop(time=datetime.time(hour=6, minute=0, second=0, microsecond=0, tzinfo=datetime.datetime.now().astimezone().tzinfo))
-async def postcardDecider():
-    members = client.guilds[0].members
-    members_real = []
-    for member in members:
-        if member.bot == False:
-            members_real.append(member)
-    with open("visited.json", "r") as file:
-        cities = json.load(file)
-    today = str(datetime.datetime.now()).split(' ')[0]
-    for city in cities:
-        if cities[city]['arrive'] == today and cities[city]['visited'] == 'N':
-            randNum = random.randint(0, len(members_real)-1)
-            await userPostcard(members_real[randNum], city)
-            cities[city]['visited'] = 'Y'
-    with open("visited.json", "w") as file:
-        json.dump(cities, file)
 
 #bot wakeup
 @client.event
@@ -150,6 +136,16 @@ async def on_message(message):
             await message.channel.send("Error, remember to write the date as 'yyyy-mm-dd' or 'yyyy/mm/dd'")
         else:
             await sendSchedule(date, 'date', message.channel)
+
+    if ".postcard" in message.content:
+        members = client.guilds[0].members
+        members_real = []
+        for member in members:
+            if member.bot == False:
+                members_real.append(member)
+        city = message.content.split(" ")[1]
+        randNum = random.randint(0, len(members_real) - 1)
+        await userPostcard(members_real[randNum], city)
 
 if __name__ == "__main__":
     DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
